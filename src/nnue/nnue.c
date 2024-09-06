@@ -456,28 +456,26 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     NNUEAccumulator *accum = thread->nnue->current;
 
-    ALIGN64 float   outN1[L1SIZE];
-    ALIGN64 float   outN2[L1SIZE];
+    ALIGN64 float outN1[L1SIZE];
+    ALIGN64 float outN2[L1SIZE];
 
     if (!accum->accurate[WHITE]) {
 
-        // Possible to recurse and incrementally update each
-        if (nnue_can_update(accum, board, WHITE))
-            nnue_update_accumulator(accum, board, WHITE, wrelksq);
+        // Check if it is possible to recurse and incrementally update each, and do so if it is
+        bool update_success = nnue_update_accumulator(accum, board, WHITE, wrelksq);
 
         // History is missing, we must refresh completely
-        else
+        if (!update_success)
             nnue_refresh_accumulator(thread->nnue, accum, board, WHITE, wrelksq);
     }
 
     if (!accum->accurate[BLACK]) {
 
-        // Possible to recurse and incrementally update each
-        if (nnue_can_update(accum, board, BLACK))
-            nnue_update_accumulator(accum, board, BLACK, brelksq);
+        // Check if it is possible to recurse and incrementally update each, and do so if it is
+        bool update_success = nnue_update_accumulator(accum, board, BLACK, brelksq);
 
         // History is missing, we must refresh completely
-        else
+        if (!update_success)
             nnue_refresh_accumulator(thread->nnue, accum, board, BLACK, brelksq);
     }
 

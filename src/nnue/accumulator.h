@@ -87,6 +87,5 @@ INLINE void nnue_remove_piece(Board *board, int piece, int sq) {
         nnue_move_piece(board, piece, sq, SQUARE_NB);
 }
 
-int nnue_can_update(NNUEAccumulator *accum, Board *board, int colour);
-void nnue_update_accumulator(NNUEAccumulator *accum, Board *board, int colour, int relksq);
+int nnue_update_accumulator(NNUEAccumulator *accum, Board *board, int colour, int relksq);
 void nnue_refresh_accumulator(NNUEEvaluator *nnue, NNUEAccumulator *accum, Board *board, int colour, int relksq);
