@@ -74,8 +74,6 @@ int nnue_update_accumulator(NNUEAccumulator *accum, Board *board, int colour, in
             break;
     }
 
-    vepi16 *inputs, *outputs, *weights, registers[NUM_REGS];
-
     for (int i = accums_seen - 1; i >= 0; i--) {
         NNUEAccumulator *current_accum = accum - i;
 
@@ -96,6 +94,7 @@ int nnue_update_accumulator(NNUEAccumulator *accum, Board *board, int colour, in
         }
     }
 
+    vepi16 *inputs, *outputs, *weights, registers[NUM_REGS];
     for (int offset = 0; offset < KPSIZE; offset += NUM_REGS * vepi16_cnt) {
         inputs = (vepi16*) &accurate_accum->values[colour][offset];
         for (int i = 0; i < NUM_REGS; i++)
