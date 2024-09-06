@@ -47,8 +47,8 @@ INLINE void nnue_reset_evaluator(NNUEEvaluator* ptr) {
 
         // Reset the base of the Accumulator stack
         ptr->current = &ptr->stack[0];
-        ptr->current->accurate[WHITE] = 0;
-        ptr->current->accurate[BLACK] = 0;
+        ptr->current->accurate[WHITE] = FALSE;
+        ptr->current->accurate[BLACK] = FALSE;
 
     #endif
 }
@@ -68,6 +68,8 @@ INLINE void nnue_push(Board *board) {
         NNUEAccumulator *accum = ++board->thread->nnue->current;
         accum->accurate[WHITE] = accum->accurate[BLACK] = FALSE;
         accum->changes = 0;
+        accum->add = 0;
+        accum->remove = 0;
     }
 }
 

@@ -46,7 +46,7 @@ typedef struct NNUEDelta {
 } NNUEDelta;
 
 typedef struct NNUEAccumulator {
-    int changes, accurate[COLOUR_NB];
+    int changes, accurate[COLOUR_NB], add_list[2], remove_list[2], add, remove;
     NNUEDelta deltas[3];
     ALIGN64 int16_t values[COLOUR_NB][KPSIZE];
 } NNUEAccumulator;

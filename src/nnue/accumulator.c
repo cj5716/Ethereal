@@ -74,13 +74,13 @@ int nnue_update_accumulator(NNUEAccumulator *accum, Board *board, int colour, in
             break;
     }
 
-    int add[accums_seen] = {}, remove[accums_seen] = {};
-    int add_list[accums_seen][3], remove_list[accums_seen][3];
     vepi16 *inputs, *outputs, *weights, registers[NUM_REGS];
 
     for (int i = accums_seen - 1; i >= 0; i--) {
+        NNUEAccumulator *current_accum = accum - i;
+
         // Determine the features that have changed, by looping through them
-        for (NNUEDelta *x = &(accum - i)->deltas[0]; x < &(accum - i)->deltas[0] + (accum - i)->changes; x++) {
+        for (NNUEDelta *x = &current_accum->deltas[0]; x < &current_accum->deltas[0] + current_accum->changes; x++) {
 
             // HalfKP does not concern with KxK relations
             if (pieceType(x->piece) == KING)
@@ -88,13 +88,12 @@ int nnue_update_accumulator(NNUEAccumulator *accum, Board *board, int colour, in
 
             // Moving or placing a Piece to a Square
             if (x->to != SQUARE_NB)
-                add_list[i][add[i]++] = nnue_index(x->piece, relksq, colour, x->to);
+                current_accum->add_list[current_accum->add++] = nnue_index(x->piece, relksq, colour, x->to);
 
             // Moving or deleting a Piece from a Square
             if (x->from != SQUARE_NB)
-                remove_list[i][remove[i]++] = nnue_index(x->piece, relksq, colour, x->from);
+                current_accum->remove_list[current_accum->remove++] = nnue_index(x->piece, relksq, colour, x->from);
         }
-        (accum - i)->accurate[colour] = TRUE;
     }
 
     for (int offset = 0; offset < KPSIZE; offset += NUM_REGS * vepi16_cnt) {
@@ -103,26 +102,35 @@ int nnue_update_accumulator(NNUEAccumulator *accum, Board *board, int colour, in
             registers[i] = inputs[i];
 
         for (int curr = accums_seen - 1; curr >= 0; curr--) {
-            for (int i = 0; i < add[curr]; i++) {
+            NNUEAccumulator *current_accum = accum - curr;
 
-                weights = (vepi16*) &in_weights[add_list[curr][i] * KPSIZE + offset];
+            for (int i = 0; i < current_accum->add; i++) {
+
+                weights = (vepi16*) &in_weights[current_accum->add_list[i] * KPSIZE + offset];
 
                 for (int j = 0; j < NUM_REGS; j++)
                     registers[j] = vepi16_add(registers[j], weights[j]);
             }
 
-            for (int i = 0; i < remove[curr]; i++) {
+            for (int i = 0; i < current_accum->remove; i++) {
 
-                weights = (vepi16*) &in_weights[remove_list[curr][i] * KPSIZE + offset];
+                weights = (vepi16*) &in_weights[current_accum->remove_list[i] * KPSIZE + offset];
 
                 for (int j = 0; j < NUM_REGS; j++)
                     registers[j] = vepi16_sub(registers[j], weights[j]);
             }
 
-            outputs = (vepi16*) &(accum - curr)->values[colour][offset];
+            outputs = (vepi16*) &current_accum->values[colour][offset];
             for (int i = 0; i < NUM_REGS; i++)
                 outputs[i] = registers[i];
         }
+    }
+
+    for (int i = accums_seen - 1; i >= 0; i--) {
+        NNUEAccumulator *current_accum = accum - i;
+        current_accum->add = 0;
+        current_accum->remove = 0;
+        current_accum->accurate[colour] = TRUE;
     }
 
     return TRUE;
